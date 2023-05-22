@@ -1,0 +1,131 @@
+SELECT*
+FROM[Production].[Product]
+
+SELECT *
+FROM[Production].[ProductCategory]
+
+SELECT *
+FROM[Production].[ProductSubcategory]
+
+SELECT pc.Name,
+		Count (p.ProductID)	AS CountOfProducts
+FROM [Production].[Product] AS p
+INNER JOIN [Production].[ProductSubcategory] AS ps ON p.ProductSubcategoryID = ps.ProductSubcategoryID
+INNER JOIN [Production].[ProductCategory] AS pc ON ps.ProductCategoryID = pc.ProductCategoryID
+GROUP BY 
+pc.Name
+
+4th question
+
+SELECT ps.Name,
+		AVG (p.ListPrice)	AS AverageProductPrice
+FROM [Production].[Product] AS p
+INNER JOIN [Production].[ProductSubcategory] AS ps ON p.ProductSubcategoryID = ps.ProductSubcategoryID
+GROUP BY 
+ps.Name
+
+
+SELECT *
+FROM[Production].[Product]
+WHERE ProductSubcategoryID = 1
+
+
+SELECT ProductSubcategoryID
+FROM[Production].[ProductSubcategory]
+WHERE Name= 'Mountain Bikes'
+
+SELECT *
+FROM[Production].[Product]
+WHERE ProductSubcategoryID = 
+(
+SELECT ProductSubcategoryID
+FROM[Production].[ProductSubcategory]
+WHERE Name= 'Road Bikes'
+)
+
+
+
+SELECT *
+FROM[Production].[Product]
+WHERE ProductSubcategoryID = 
+(
+SELECT ProductSubcategoryID
+FROM[Production].[ProductSubcategory]
+WHERE Name='Touring Bikes')
+
+---------------------------
+SELECT *
+FROM [Production].[ProductSubcategory]
+WHERE ProductCategoryID = 
+(
+	SELECT ProductCategoryID
+	FROM [Production].[ProductCategory]
+	WHERE Name='Accessories'
+)
+
+
+
+-------------------------------------
+SUBQUERY 18.5.23
+
+SELECT ProductID,
+		Name AS ProductName,
+		ListPrice,
+		p.ProductSubcategoryID,
+		PSAvgPrice.AverageProductPrice,
+		(ListPrice - PSAvgPrice.AverageProductPrice) AS PriceVariance
+FROM Production.Product AS p
+INNER JOIN
+(	
+	SELECT p.ProductSubcategoryID,
+		AVG(p.ListPrice) AS AverageProductPrice
+	FROM [Production].[Product] AS p
+	GROUP BY
+	p.ProductSubcategoryID
+) AS PSAvgPrice
+ON p.ProductSubcategoryID = PSAvgPrice.ProductSubcategoryID
+
+---------------
+CTE  - clear and simplified. Subquery on top
+
+WITH PSAvgPrice
+AS
+(	
+	SELECT p.ProductSubcategoryID,
+		AVG(p.ListPrice) AS AverageProductPrice
+	FROM [Production].[Product] AS p
+	GROUP BY
+	p.ProductSubcategoryID
+) 
+SELECT ProductID,
+		Name AS ProductName,
+		ListPrice,
+		p.ProductSubcategoryID,
+		PSAvgPrice.AverageProductPrice,
+		(ListPrice - PSAvgPrice.AverageProductPrice) AS PriceVariance
+FROM Production.Product AS p
+INNER JOIN  PSAvgPrice ON p.ProductSubcategoryID = PSAvgPrice.ProductSubcategoryID
+
+--Windows Functions
+--
+
+SELECT ProductID,
+		Name AS ProductName,
+		ListPrice,
+		RANK() OVER (ORDER BY ListPrice DESC) AS price_ranking
+FROM Production.Product
+
+----CTE and OVER CLAUSE Window Function
+
+WITH p
+AS
+(
+	SELECT ProductID,
+			Name AS ProductName,
+			ListPrice,
+			ROW_NUMBER() OVER (ORDER BY ListPrice DESC) AS rownum
+	FROM Production.Product
+)
+SELECT *
+FROM p
+WHERE p.rownum <= 10
